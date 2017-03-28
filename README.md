@@ -1,5 +1,5 @@
 # PPNG.js
-PPNG.js (Photopea PNG) is a small, fast and advanced PNG decoder. It is the main PNG decoder for [Photopea image editor](https://www.photopea.com).
+PPNG.js is a small, fast and advanced PNG decoder. It is the main PNG decoder for [Photopea image editor](https://www.photopea.com).
 
 * light and small (8 kB unminified uncompressed)
 * Supports all color types (including Grayscale and Pallettes)
