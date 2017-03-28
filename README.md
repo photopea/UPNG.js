@@ -20,4 +20,4 @@ PNG files may have different number of channels and different color depth. The i
 * `img`: PNG image object (returned by PPNG.decode())
 * returns a Uint8Array of the image in a RGBA format, 8 bits per channel (ready to use in canvas2Dcontext.putImageData() etc.)
 
-PNG format uses the Inflate algorithm. Right now, it calls [Pako.js library](https://github.com/nodeca/pako) for the Inflate method. To remove this dependency, rewrite PPNG.decode._inflate() method.
+PNG format uses the Inflate algorithm. Right now, PPNG.js calls [Pako.js library](https://github.com/nodeca/pako) for the Inflate method. To remove this dependency, rewrite PPNG.decode._inflate() method.
