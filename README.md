@@ -1,8 +1,7 @@
 # PPNG.js
 PPNG.js is a small, fast and advanced PNG decoder. It is the main PNG decoder for [Photopea image editor](https://www.photopea.com).
 
-* light and small (8 kB unminified uncompressed)
-* Supports all color types (including Grayscale and Pallettes)
+* Supports all color types (including Grayscale and Palettes)
 * Supports interlaced images
 
 #### `PPNG.decode(buffer)`
@@ -15,7 +14,7 @@ PPNG.js is a small, fast and advanced PNG decoder. It is the main PNG decoder fo
 * * `tabs`: additional chunks of the PNG file
 * * `data`: pixel data of the image
 
-PNG files may have different number of channels and different color depth. The interpretation of `data` depends on the current color type and color depth.
+PNG files may have different number of channels and different color depth. The interpretation of `data` depends on the current color type and color depth (see the [PNG specification](https://www.w3.org/TR/PNG/)).
 
 #### `PPNG.toRGBA8(img)`
 * `img`: PNG image object (returned by PPNG.decode())
