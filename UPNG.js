@@ -14,7 +14,7 @@ UPNG.toRGBA8 = function(out)
 	
 	if     (ctype==6) { // RGB + alpha
 		var qarea = area<<2;
-		if(depth== 8) for(var i=0; i<qarea;i++) {  bf[i] = data[i];  }
+		if(depth== 8) for(var i=0; i<qarea;i++) {  bf[i] = data[i];  /*if((i&3)==3) bf[i]=255;*/  }
 		if(depth==16) for(var i=0; i<qarea;i++) {  bf[i] = data[i<<1];  }
 	}
 	else if(ctype==2) {	// RGB
@@ -206,7 +206,6 @@ UPNG.decode._readInterlace = function(data, out)
 
 UPNG.decode._getBPP = function(out)
 {
-	//if(out.depth!=8) console.log("Unsupported bit depth", out.depth);
 	var noc = 0, ctype = out.ctype;		// number of channels
 	if     (ctype==0) noc = 1;
 	else if(ctype==2) noc = 3;
@@ -228,13 +227,22 @@ UPNG.decode._filterZero = function(data, out, off, w, h)
 		var type = data[di-1];
 		
 		if    (type==0) for(var x=  0; x<bpl; x++) data[i+x] = data[di+x];
-		else {  
-			if(type==1) for(var x=  0; x<bpp; x++) data[i+x] = data[di+x];  
-			if(type==2) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x]+data[i+x-bpl])&255;  
-			if(type==3) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x]+(data[i+x-bpl]>>>1))&255;  
-			if(type==4) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x]+UPNG.decode._paeth(0, data[i+x-bpl], 0))&255;  
+		else if(type==1) {
+			for(var x=  0; x<bpp; x++) data[i+x] = data[di+x]; 
+			for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + data[i+x-bpp])&255;
+		}
+		else if(y==0) {
+			for(var x=  0; x<bpp; x++) data[i+x] = data[di+x];  
 			
-			if(type==1) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + data[i+x-bpp])&255;
+			if(type==2) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x])&255;
+			if(type==3) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + (data[i+x-bpp]>>>1) )&255;
+			if(type==4) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + UPNG.decode._paeth(data[i+x-bpp], 0, 0) )&255;
+		} 
+		else {  
+			if(type==2) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + data[i+x-bpl])&255;  
+			if(type==3) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + (data[i+x-bpl]>>>1))&255;  
+			if(type==4) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + UPNG.decode._paeth(0, data[i+x-bpl], 0))&255;  
+			
 			if(type==2) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + data[i+x-bpl])&255;
 			if(type==3) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + ((data[i+x-bpl]+data[i+x-bpp])>>>1) )&255;
 			if(type==4) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + UPNG.decode._paeth(data[i+x-bpp], data[i+x-bpl], data[i+x-bpp-bpl]) )&255;
@@ -246,11 +254,11 @@ UPNG.decode._filterZero = function(data, out, off, w, h)
 
 UPNG.decode._paeth = function(a,b,c)
 {
-	var p = a+b-c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c), Pr = 0;
-    if (pa <= pb && pa <= pc)  Pr = a;
-    else if (pb <= pc)  Pr = b;
-    else Pr = c;
-    return Pr;
+	var p = a+b-c, pa = Math.abs(p-a), pb = Math.abs(p-b), pc = Math.abs(p-c), Pr = 0;
+	if (pa <= pb && pa <= pc)  Pr = a;
+	else if (pb <= pc)  Pr = b;
+	else Pr = c;
+	return Pr;
 }
 
 UPNG.decode._IHDR = function(data, offset, out)
