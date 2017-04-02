@@ -272,8 +272,6 @@ UPNG.decode._IHDR = function(data, offset, out)
 }
 
 
-
-
 UPNG._bin = {
 	nextZero   : function(data, o) {  while(data[o]!=0) o++;  return o;  },
 	readUshort : function(buff, p) {  return (buff[p]<< 8) | buff[p+1];  },

@@ -69,11 +69,21 @@ path-is-absolute@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/path-is-absolute/-/path-is-absolute-1.0.1.tgz#174b9268735534ffbc7ace6bf53a5a9e1b5c5f5f"
 
+require-relative@0.8.7:
+  version "0.8.7"
+  resolved "https://registry.yarnpkg.com/require-relative/-/require-relative-0.8.7.tgz#7999539fc9e047a37928fa196f8e1563dabd36de"
+
 rimraf@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.1.tgz#c2338ec643df7a1b7fe5c54fa86f57428a55f33d"
   dependencies:
     glob "^7.0.5"
+
+rollup-watch@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/rollup-watch/-/rollup-watch-3.2.2.tgz#5e574232e9ef36da9177f46946d8080cb267354b"
+  dependencies:
+    require-relative "0.8.7"
 
 rollup@^0.41.6:
   version "0.41.6"
