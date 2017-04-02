@@ -1,0 +1,18 @@
+{
+  "name": "UPNG.js",
+  "version": "1.0.0",
+  "description": "Fast and advanced PNG decoder Edit",
+  "main": "dist/UPNG.js",
+  "repository": "git@github.com:photopea/UPNG.js.git",
+  "author": "Ivan Kuckir <ivan@kuckir.com>",
+  "license": "MIT",
+  "scripts": {
+    "precompile": "rimraf dist && mkdirp dist",
+    "compile": "rollup src/index.js --format umd --name 'UPNG' --output dist/UPNG.js"
+  },
+  "devDependencies": {
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.1",
+    "rollup": "^0.41.6"
+  }
+}
