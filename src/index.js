@@ -299,4 +299,5 @@ UPNG._bin = {
 	}
 }
 
-export default UPNG;
+export const toRGBA8 = UPNG.toRGBA8;
+export const decode = UPNG.decode;
