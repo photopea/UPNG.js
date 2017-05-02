@@ -28,13 +28,13 @@ UPNG.toRGBA8 = function(out)
 	else if(ctype==3) {	// palette
 		var p=out.tabs["PLTE"], ap=out.tabs["tRNS"], tl=ap?ap.length:0;
 		if(depth==1) for(var y=0; y<h; y++) {  var s0 = y*bpl, t0 = y*w; 
-			for(var i=0; i<w; i++) { var qi=(t0+i)<<2, j=((data[s0+(i>>3)]>>(7-((i&7)<<0)))& 1), cj=3*j;  bf[qi]=p[cj];  bf[qi+1]=p[cj+1];  bf[qi+2]=p[cj+2];  bf[qi+3]=(j<tl)?ap[j]:255;   }
+			for(var i=0; i<w; i++) { var qi=(t0+i)<<2, j=((data[s0+(i>>3)]>>(7-((i&7)<<0)))& 1), cj=3*j;  bf[qi]=p[cj];  bf[qi+1]=p[cj+1];  bf[qi+2]=p[cj+2];  bf[qi+3]=(j<tl)?ap[j]:255;  }
 		}
 		if(depth==2) for(var y=0; y<h; y++) {  var s0 = y*bpl, t0 = y*w; 
-			for(var i=0; i<w; i++) { var qi=(t0+i)<<2, j=((data[s0+(i>>2)]>>(6-((i&3)<<1)))& 3), cj=3*j;  bf[qi]=p[cj];  bf[qi+1]=p[cj+1];  bf[qi+2]=p[cj+2];  bf[qi+3]=(j<tl)?ap[j]:255;   }
+			for(var i=0; i<w; i++) { var qi=(t0+i)<<2, j=((data[s0+(i>>2)]>>(6-((i&3)<<1)))& 3), cj=3*j;  bf[qi]=p[cj];  bf[qi+1]=p[cj+1];  bf[qi+2]=p[cj+2];  bf[qi+3]=(j<tl)?ap[j]:255;  }
 		}
 		if(depth==4) for(var y=0; y<h; y++) {  var s0 = y*bpl, t0 = y*w;  
-			for(var i=0; i<w; i++) { var qi=(t0+i)<<2, j=((data[s0+(i>>1)]>>(4-((i&1)<<2)))&15), cj=3*j;  bf[qi]=p[cj];  bf[qi+1]=p[cj+1];  bf[qi+2]=p[cj+2];  bf[qi+3]=(j<tl)?ap[j]:255;   }
+			for(var i=0; i<w; i++) { var qi=(t0+i)<<2, j=((data[s0+(i>>1)]>>(4-((i&1)<<2)))&15), cj=3*j;  bf[qi]=p[cj];  bf[qi+1]=p[cj+1];  bf[qi+2]=p[cj+2];  bf[qi+3]=(j<tl)?ap[j]:255;  }
 		}
 		if(depth==8) for(var i=0; i<area; i++ ) {  var qi=i<<2, j=data[i]                      , cj=3*j;  bf[qi]=p[cj];  bf[qi+1]=p[cj+1];  bf[qi+2]=p[cj+2];  bf[qi+3]=(j<tl)?ap[j]:255;  }
 	}
@@ -218,8 +218,10 @@ UPNG.decode._getBPP = function(out)
 
 UPNG.decode._filterZero = function(data, out, off, w, h)
 {	
-	var bpp = UPNG.decode._getBPP(out), bpl = Math.ceil(w*bpp/8);;
+	var bpp = UPNG.decode._getBPP(out), bpl = Math.ceil(w*bpp/8);
+	//console.log(bpp);
 	bpp = Math.ceil(bpp/8);
+	var paeth = UPNG.decode._paeth;
 	
 	for(var y=0; y<h; y++)
 	{
@@ -235,30 +237,28 @@ UPNG.decode._filterZero = function(data, out, off, w, h)
 			for(var x=  0; x<bpp; x++) data[i+x] = data[di+x];  
 			
 			if(type==2) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x])&255;
-			if(type==3) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + (data[i+x-bpp]>>>1) )&255;
-			if(type==4) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + UPNG.decode._paeth(data[i+x-bpp], 0, 0) )&255;
+			if(type==3) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + (data[i+x-bpp]>>1) )&255;
+			if(type==4) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + paeth(data[i+x-bpp], 0, 0) )&255;
 		} 
-		else {  
-			if(type==2) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + data[i+x-bpl])&255;  
-			if(type==3) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + (data[i+x-bpl]>>>1))&255;  
-			if(type==4) for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + UPNG.decode._paeth(0, data[i+x-bpl], 0))&255;  
+		else {  			
+			if(type==2) { for(var x=  0; x<bpl; x++) data[i+x] = (data[di+x] + data[i+x-bpl])&255;  }
 			
-			if(type==2) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + data[i+x-bpl])&255;
-			if(type==3) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + ((data[i+x-bpl]+data[i+x-bpp])>>>1) )&255;
-			if(type==4) for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + UPNG.decode._paeth(data[i+x-bpp], data[i+x-bpl], data[i+x-bpp-bpl]) )&255;
+			if(type==3) { for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + (data[i+x-bpl]>>1))&255;  
+			              for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + ((data[i+x-bpl]+data[i+x-bpp])>>1) )&255;  }
+			
+			if(type==4) { for(var x=  0; x<bpp; x++) data[i+x] = (data[di+x] + paeth(0, data[i+x-bpl], 0))&255;  
+						  for(var x=bpp; x<bpl; x++) data[i+x] = (data[di+x] + paeth(data[i+x-bpp], data[i+x-bpl], data[i+x-bpp-bpl]) )&255;  }
 		}
-		if(type>4) console.log("unknown filter type", type, y);
 	}
 	return data;
 }
 
 UPNG.decode._paeth = function(a,b,c)
 {
-	var p = a+b-c, pa = Math.abs(p-a), pb = Math.abs(p-b), pc = Math.abs(p-c), Pr = 0;
-	if (pa <= pb && pa <= pc)  Pr = a;
-	else if (pb <= pc)  Pr = b;
-	else Pr = c;
-	return Pr;
+	var p = a+b-c, pa = Math.abs(p-a), pb = Math.abs(p-b), pc = Math.abs(p-c);
+	if (pa <= pb && pa <= pc)  return a;
+	else if (pb <= pc)  return b;
+	return c;
 }
 
 UPNG.decode._IHDR = function(data, offset, out)
@@ -289,9 +289,11 @@ UPNG._bin = {
 	pad : function(n) { return n.length < 2 ? "0" + n : n; },
 	readUTF8 : function(buff, p, l)
 	{
-		var s = "";
+		var s = "", ns;
 		for(var i=0; i<l; i++) s += "%" + UPNG._bin.pad(buff[p+i].toString(16));
-		return decodeURIComponent(s);
+		try {  ns = decodeURIComponent(s); } 
+		catch(e) {  return UPNG._bin.readASCII(buff, p, l);  }
+		return  ns;
 	},
 	readBytes : function(buff, p, l)
 	{
