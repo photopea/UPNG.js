@@ -261,6 +261,7 @@ UPNG.quantize = function(img, w, h, ps)
 			plte[qi]=nplt[qi]*den;  plte[qi+1]=nplt[qi+1]*den;  plte[qi+2]=nplt[qi+2]*den;  plte[qi+3]=nplt[qi+3]*den;  
 		}
 	}
+	//UPNG.quantize.dither(nimg, w,h, pind,plte, ps);  // I think that (current) dithering is not worth it
 	for(var i=0; i<area; i++) {
 		var qi=i<<2, ci=pind[i], qci=ci<<2, ia = plte[qci+3]==0 ? 0 : 255/plte[qci+3];
 		nimg[qi+0] = plte[qci+0]*ia;  nimg[qi+1] = plte[qci+1]*ia;  nimg[qi+2] = plte[qci+2]*ia;  nimg[qi+3] = plte[qci+3];
@@ -271,6 +272,30 @@ UPNG.quantize.dist = function(r,g,b,a,ba,bi)
 {
 	var pr=ba[bi], pg=ba[bi+1], pb=ba[bi+2], pa=ba[bi+3];
 	return (pr-r)*(pr-r)+(pg-g)*(pg-g)+(pb-b)*(pb-b)+(pa-a)*(pa-a);
+}
+UPNG.quantize.dither = function(nimg, w, h, pind, plte, ps)
+{
+	var err = new Float32Array(w*h*4), i16 = 1/16;
+	var edist = UPNG.quantize.dist, round=Math.round, qw=w<<2;
+	for(var y=0; y<h; y++)
+		for(var x=0; x<w; x++) {
+			var i = y*w+x, qi=i<<2;
+			for(var j=0; j<4; j++) err[qi+j] = Math.max(-8, Math.min(8, err[qi+j]));
+			var r=round(nimg[qi]+err[qi]), g=round(nimg[qi+1]+err[qi+1]), b=round(nimg[qi+2]+err[qi+2]), a=round(nimg[qi+3]+err[qi+3]);
+			var ci=0, cd=1e9;
+			for(var j=0; j<ps; j++) {
+				var dst = edist(r,g,b,a,plte,j<<2);
+				if(dst<cd) {  ci=j;  cd=dst;  }
+			}
+			pind[i]=ci;
+			var ciq = ci<<2;
+			var dr=r-plte[ciq], dg=g-plte[ciq+1], db=b-plte[ciq+2], da=a-plte[ciq+3];
+			
+			err[qi   +4+0] += (7*dr*i16);  err[qi   +4+1] += (7*dg*i16);  err[qi   +4+2] += (7*db*i16);  err[qi   +4+3] += (7*da*i16);
+			err[qi+qw-4+0] += (3*dr*i16);  err[qi+qw-4+1] += (3*dg*i16);  err[qi+qw-4+2] += (3*db*i16);  err[qi+qw-4+3] += (3*da*i16);
+			err[qi+qw  +0] += (5*dr*i16);  err[qi+qw  +1] += (5*dg*i16);  err[qi+qw  +2] += (5*db*i16);  err[qi+qw  +3] += (5*da*i16);
+			err[qi+qw+4+0] += (1*dr*i16);  err[qi+qw+4+1] += (1*dg*i16);  err[qi+qw+4+2] += (1*db*i16);  err[qi+qw+4+3] += (1*da*i16);
+		}
 }
 
 UPNG.decode = function(buff)
