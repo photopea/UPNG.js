@@ -4,6 +4,8 @@ A small, fast and advanced PNG encoder and decoder. It is the main PNG engine fo
 * [Examples of PNGs minified by UPNG.js](https://blog.photopea.com/png-minifier-inside-photopea.html#examples)
 * [Try UPNG.js in Photopea](https://www.photopea.com) - open an image and press File - Save for web, play with the Quality
 
+Support us by [making a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=ivan%2ekuckir%40gmail%2ecom&lc=CZ&item_name=UPNG%2ejs&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted).
+
 ## Encoder
 
 #### `UPNG.encode(rgba, w, h, cnum)`
@@ -14,7 +16,7 @@ A small, fast and advanced PNG encoder and decoder. It is the main PNG engine fo
 
 UPNG.js can do a lossy minification of PNG files, similar to [TinyPNG](https://tinypng.com/) and other tools. It performs color quantization using the [k-means algorithm](https://en.wikipedia.org/wiki/K-means_clustering).
 
-Lossy compression is allowed by the last parameter `cnum`. Set it to zero for a lossless compression, or write the number of allowed colors in the image. Smaller values produce smaller files. To make things simpler, just use 0 for a lossless and 256 for a lossy compression.
+Lossy compression is allowed by the last parameter `cnum`. Set it to zero for a lossless compression, or write the number of allowed colors in the image. Smaller values produce smaller files. **Or just use 0 for lossless / 256 for lossy.**
 
 ## Decoder
 
