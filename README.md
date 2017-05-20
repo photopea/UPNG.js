@@ -37,4 +37,8 @@ PNG files may have a various number of channels and a various color depth. The i
 * `img`: PNG image object (returned by UPNG.decode())
 * returns Uint8Array of the image in RGBA format, 8 bits per channel (ready to use in ctx.putImageData() etc.)
 
+### Example
+    var img = UPNG.decode(buff);  // put ArrayBuffer into UPNG.decode
+    var rgba = UPNG.toRGBA8(img).buffer;  // UPNG.toRGBA8 returns Uint8Array, size: width * height * 4 bytes.
+
 PNG format uses the Inflate algorithm. Right now, UPNG.js calls [Pako.js](https://github.com/nodeca/pako) for the Inflate and Deflate method.
