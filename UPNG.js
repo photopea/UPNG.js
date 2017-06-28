@@ -76,6 +76,12 @@ UPNG.encode = function(buff, w, h, ps)
 	data[offset] = 0;  offset++;  // interlace
 	bin.writeUint (data,offset,crc(data,offset-17,17));  offset+=4; // crc
 	
+	// 9 bytes to say, that it is sRGB
+	bin.writeUint (data,offset, 1);      offset+=4;
+	bin.writeASCII(data,offset,"sRGB");  offset+=4;
+	data[offset] = 1;  offset++;  
+	bin.writeUint (data,offset,crc(data,offset-5,5));  offset+=4; // crc
+	
 	
 	if(nimg.ctype==3) {
 		var dl = nimg.plte.length;
@@ -443,7 +449,7 @@ UPNG.decode._readInterlace = function(data, out)
 
 UPNG.decode._getBPP = function(out) {
 	var noc = [1,null,3,1,2,null,4][out.ctype];
-	if(noc==null) console.log("unsupported color type", ctype);
+	if(noc==null) console.log("unsupported color type", out.ctype);
 	return noc * out.depth;
 }
 
