@@ -1,0 +1,24 @@
+{
+  "name": "upng-js",
+  "description": "Fast and advanced PNG encoder/decoder",
+  "version": "1.0.0",
+  "homepage": "https://github.com/photopea/UPNG.js",
+  "author": "photopea (https://github.com/photopea)",
+  "contributors": [
+    "Scimonster (https://github.com/Scimonster)"
+  ],
+  "license": "MIT",
+  "repository": "github:photopea/UPNG.js",
+  "bugs": {
+    "url": "https://github.com/photopea/UPNG.js/issues"
+  },
+  "main": "UPNG",
+  "keywords": [
+    "tiff",
+    "image",
+    "conversion"
+  ],
+  "dependencies": {
+    "pako": "^1.0.5"
+  }
+}
