@@ -324,6 +324,9 @@ UPNG.decode = function(buff)
 	while(true)
 	{
 		var len = bin.readUint(data, offset);  offset += 4;
+		
+		if	( isNaN(len) ) { throw "Invalid PNG format. Unable to decode"; }
+		
 		var type = bin.readASCII(data, offset, 4);  offset += 4;
 		//log(offset, len, type);
 
