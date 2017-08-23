@@ -1,7 +1,7 @@
 {
   "name": "upng-js",
   "description": "Fast and advanced PNG encoder/decoder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/photopea/UPNG.js",
   "author": "photopea (https://github.com/photopea)",
   "contributors": [
