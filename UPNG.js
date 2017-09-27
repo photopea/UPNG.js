@@ -13,7 +13,7 @@ function log() { if (typeof process=="undefined" || process.env.NODE_ENV=="devel
 UPNG.toRGBA8 = function(out)
 {
 	var w = out.width, h = out.height;
-	if(out.tabs.acTL==null) return [UPNG.toRGBA8.decodeImage(out.data, w, h, out)];
+	if(out.tabs.acTL==null) return [UPNG.toRGBA8.decodeImage(out.data, w, h, out).buffer];
 	
 	var frms = [];
 	if(out.frames[0].data==null) out.frames[0].data = out.data;
@@ -29,14 +29,14 @@ UPNG.toRGBA8 = function(out)
 		else if(frm.blend  ==0) UPNG._copyTile(fdata, fw, fh, img, w, h, fx, fy, 0);
 		else if(frm.blend  ==1) UPNG._copyTile(fdata, fw, fh, img, w, h, fx, fy, 1);
 		
-		frms.push(img);  img = img.slice(0);
+		frms.push(img.buffer);  img = img.slice(0);
 		
 		if     (frm.dispose==0) {}
 		else if(frm.dispose==1) UPNG._copyTile(empty, fw, fh, img, w, h, fx, fy, 0);
 		else if(frm.dispose==2) {
 			var pi = i-1;
 			while(out.frames[pi].dispose==2) pi--;
-			img = frms[pi].slice(0);
+			img = new Uint8Array(frms[pi]).slice(0);
 		}
 	}
 	return frms;
