@@ -1,5 +1,5 @@
 # UPNG.js
-A small, fast and advanced PNG encoder and decoder. It is the main PNG engine for [Photopea image editor](https://www.photopea.com).
+A small, fast and advanced PNG / APNG encoder and decoder. It is the main PNG engine for [Photopea image editor](https://www.photopea.com).
 
 * [Examples of PNGs minified by UPNG.js](https://blog.photopea.com/png-minifier-inside-photopea.html#examples)
 * [Try UPNG.js in Photopea](https://www.photopea.com) - open an image and press File - Save for web, play with the Quality
@@ -14,10 +14,13 @@ npm install upng-js
 
 ## Encoder
 
-#### `UPNG.encode(rgba, w, h, cnum)`
-* `rgba`: ArrayBuffer containing the pixel data (RGBA, 8 bits per channel)
+UPNG.js supports APNG and the interface expects "frames". Regular PNG is just a single-frame animation (single-item array).
+
+#### `UPNG.encode(imgs, w, h, cnum, [dels])`
+* `imgs`: array of frames. A frame is an ArrayBuffer containing the pixel data (RGBA, 8 bits per channel)
 * `w`, `h` : width and height of the image
 * `cnum`: number of colors in the result;  0: all colors (lossless PNG)
+* `dels`: array of delays for each frame (only when 2 or more frames)
 * returns an ArrayBuffer with binary data of a PNG file
 
 UPNG.js can do a lossy minification of PNG files, similar to [TinyPNG](https://tinypng.com/) and other tools. It performs color quantization using the [k-means algorithm](https://en.wikipedia.org/wiki/K-means_clustering).
@@ -35,6 +38,7 @@ Supports all color types (including Grayscale and Palettes), all channel depths 
 * * `height`: the height of the image
 * * `depth`: number of bits per channel
 * * `ctype`: color type of the file (Truecolor, Grayscale, Palette ...)
+* * `frames`: additional info about frames (frame delays etc.)
 * * `tabs`: additional chunks of the PNG file
 * * `data`: pixel data of the image
 
@@ -42,10 +46,10 @@ PNG files may have a various number of channels and a various color depth. The i
 
 #### `UPNG.toRGBA8(img)`
 * `img`: PNG image object (returned by UPNG.decode())
-* returns Uint8Array of the image in RGBA format, 8 bits per channel (ready to use in ctx.putImageData() etc.)
+* returns an array of frames. A frame is ArrayBuffer of the image in RGBA format, 8 bits per channel.
 
 ### Example
-    var img  = UPNG.decode(buff);         // put ArrayBuffer into UPNG.decode
-    var rgba = UPNG.toRGBA8(img).buffer;  // UPNG.toRGBA8 returns Uint8Array, size: width * height * 4 bytes.
+    var img  = UPNG.decode(buff);        // put ArrayBuffer of the PNG file into UPNG.decode
+    var rgba = UPNG.toRGBA8(img)[0];     // UPNG.toRGBA8 returns array of frames, size: width * height * 4 bytes.
 
 PNG format uses the Inflate algorithm. Right now, UPNG.js calls [Pako.js](https://github.com/nodeca/pako) for the Inflate and Deflate method.
