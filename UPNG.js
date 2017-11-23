@@ -11,6 +11,8 @@ function log() { if (typeof process=="undefined" || process.env.NODE_ENV=="devel
 
 	
 
+	
+
 UPNG.toRGBA8 = function(out)
 {
 	var w = out.width, h = out.height;
@@ -103,8 +105,11 @@ UPNG.decode = function(buff)
 	var out = {tabs:{}, frames:[]};
 	var dd = new Uint8Array(data.length), doff = 0;	 // put all IDAT data into it
 	var fd, foff = 0;	// frames
+	
+	var mgck = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+	for(var i=0; i<8; i++) if(data[i]!=mgck[i]) throw "The input is not a PNG file!";
 
-	while(true)
+	while(offset<data.length)
 	{
 		var len  = bin.readUint(data, offset);  offset += 4;
 		var type = bin.readASCII(data, offset, 4);  offset += 4;
@@ -374,7 +379,6 @@ UPNG._copyTile = function(sb, sw, sh, tb, tw, th, xoff, yoff, mode)
 		}
 	return true;
 }
-
 
 
 
@@ -803,6 +807,12 @@ UPNG.encode.alphaMul = function(img, roundA) {
 	}
 	return nimg;
 }
+
+	
+	
+	
+	
+	
 
 
 })(UPNG, pako);
