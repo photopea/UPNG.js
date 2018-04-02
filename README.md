@@ -23,9 +23,21 @@ UPNG.js supports APNG and the interface expects "frames". Regular PNG is just a 
 * `dels`: array of delays for each frame (only when 2 or more frames)
 * returns an ArrayBuffer with binary data of a PNG file
 
-UPNG.js can do a lossy minification of PNG files, similar to [TinyPNG](https://tinypng.com/) and other tools. It performs color quantization using the [k-means algorithm](https://en.wikipedia.org/wiki/K-means_clustering).
+UPNG.js can do a lossy minification of PNG files, similar to [TinyPNG](https://tinypng.com/) and other tools. It performed quantization with [k-means algorithm](https://en.wikipedia.org/wiki/K-means_clustering) in the past, but now we use [K-d trees](https://en.wikipedia.org/wiki/K-d_tree).
 
 Lossy compression is allowed by the last parameter `cnum`. Set it to zero for a lossless compression, or write the number of allowed colors in the image. Smaller values produce smaller files. **Or just use 0 for lossless / 256 for lossy.**
+
+#### `UPNG.encodeLL(imgs, w, h, cc, ac, depth, [dels])` - low-level encode
+* `imgs`: array of frames. A frame is an ArrayBuffer containing the pixel data (corresponding to following parameters)
+* `w`, `h` : width and height of the image
+* `cc`, `ac`: number of color channels (1 or 3) and alpha channels (0 or 1)
+* `depth`: bit depth of pixel data (1, 2, 4, 8, 16)
+* `dels`: array of delays for each frame (only when 2 or more frames)
+* returns an ArrayBuffer with binary data of a PNG file
+
+This function does not do any optimizations, it just stores what you give it. There are two cases when it is useful:
+* saving 16-bit colors
+* your image is too large, and "expanding" to 8-bit RGBA would use too much memory (e.g. 4-bit grayscale 50,000 x 50,000 = 1.25 GB, 8-bit RGBA would be 10 GB)
 
 ## Decoder
 
