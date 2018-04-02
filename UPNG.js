@@ -9,11 +9,6 @@ if (typeof require == "function") {pako = require("pako");}  else {pako = window
 function log() { if (typeof process=="undefined" || process.env.NODE_ENV=="development") console.log.apply(console, arguments);  }
 (function(UPNG, pako){
 
-	
-
-	
-
-var UPNG = {};
 
 	
 
@@ -385,7 +380,6 @@ UPNG._copyTile = function(sb, sw, sh, tb, tw, th, xoff, yoff, mode)
 		}
 	return true;
 }
-
 
 
 
@@ -893,13 +887,6 @@ UPNG.encode.concatRGBA = function(bufs, roundAlpha) {
 	return nimg.buffer;
 }
 
-	
-	
-	
-	
-	
-	
-	
 
 
 
