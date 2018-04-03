@@ -36,7 +36,7 @@ Lossy compression is allowed by the last parameter `cnum`. Set it to zero for a 
 * returns an ArrayBuffer with binary data of a PNG file
 
 This function does not do any optimizations, it just stores what you give it. There are two cases when it is useful:
-* saving 16-bit colors
+* saving 16-bit colors (note, that PNG is big-endian, unlike Uint16Array in JS)
 * your image is too large, and "expanding" to 8-bit RGBA would use too much memory (e.g. 4-bit grayscale 50,000 x 50,000 = 1.25 GB, 8-bit RGBA would be 10 GB)
 
 ## Decoder
