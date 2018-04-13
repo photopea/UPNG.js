@@ -27,6 +27,11 @@ UPNG.js can do a lossy minification of PNG files, similar to [TinyPNG](https://t
 
 Lossy compression is allowed by the last parameter `cnum`. Set it to zero for a lossless compression, or write the number of allowed colors in the image. Smaller values produce smaller files. **Or just use 0 for lossless / 256 for lossy.**
 
+    // Read RGBA from canvas and encode with UPNG
+    var dta = ctx.getImageData(0,0,200,300).data;  // ctx is Context2D of a Canvas
+    //  dta = new Uint8Array(200 * 300 * 4);       // or generate pixels manually
+    var png = UPNG.encode([dta.buffer], 200, 300, 0);   console.log(new Uint8Array(png));
+
 #### `UPNG.encodeLL(imgs, w, h, cc, ac, depth, [dels])` - low-level encode
 * `imgs`: array of frames. A frame is an ArrayBuffer containing the pixel data (corresponding to following parameters)
 * `w`, `h` : width and height of the image
