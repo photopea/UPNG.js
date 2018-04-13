@@ -39,6 +39,42 @@ This function does not do any optimizations, it just stores what you give it. Th
 * saving 16-bit colors (note, that PNG is big-endian, unlike Uint16Array in JS)
 * your image is too large, and "expanding" to 8-bit RGBA would use too much memory (e.g. 4-bit grayscale 50,000 x 50,000 = 1.25 GB, 8-bit RGBA would be 10 GB)
 
+### Example
+
+An example to optimise a PNG image that is built by Canvas:
+
+```javascript
+function getOptimisedPngFromCanvas (canvas) {
+    return new Promise((resolve) => {
+        canvas.toBlob((pngBlob) => {
+            const canvasPngBlobReader = new FileReader();
+
+            canvasPngBlobReader.onloadend = (canvasPngConvertedToArrayBuffer) => {
+                /* global UPNG */
+                const rawImage = UPNG.decode(canvasPngConvertedToArrayBuffer.target.result);
+                const optimisedPngBlobReader = new FileReader();
+
+                optimisedPngBlobReader.onloadend = (optimisedPngConvertedToBase64) => {
+                    resolve(optimisedPngConvertedToBase64.target.result);
+                };
+
+                optimisedPngBlobReader.readAsDataURL(new Blob([UPNG.encode(
+                    [UPNG.toRGBA8(rawImage)[0]],
+                    rawImage.width,
+                    rawImage.height,
+                    0 // 0 = losslessly.
+                )], {type: 'image/png'}));
+            };
+
+            canvasPngBlobReader.readAsArrayBuffer(pngBlob);
+        });
+    });
+}
+
+getOptimisedPngFromCanvas(document.querySelector('canvas'))
+    .then((pngB64) => window.open(pngB64));
+```
+
 ## Decoder
 
 Supports all color types (including Grayscale and Palettes), all channel depths (1, 2, 4, 8, 16), interlaced images etc. Opens PNGs which other libraries can not open (tested with [PngSuite](http://www.schaik.com/pngsuite/)).
