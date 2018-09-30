@@ -70,3 +70,26 @@ PNG files may have a various number of channels and a various color depth. The i
     var rgba = UPNG.toRGBA8(img)[0];     // UPNG.toRGBA8 returns array of frames, size: width * height * 4 bytes.
 
 PNG format uses the Inflate algorithm. Right now, UPNG.js calls [Pako.js](https://github.com/nodeca/pako) for the Inflate and Deflate method.
+
+## Quantizer
+
+UPNG.js contains a very good Quantizer of 4-component 8-bit vectors (i.e. pixels). It can be used to generate nice color palettes (e.g. Photopea uses UPNG.js to make palettes for GIF images).
+
+Quantization consists of two important steps: Finding a nice palette and Finding the closest color in the palette for each sample (non-trivial for large palettes). UPNG perfroms both steps.
+
+    var res  = UPNG.quantize(data, psize);
+
+* `data`: ArrayBuffer of samples (byte length is a multiple of four)
+* `psize` : Palette size (how many colors you want to have)
+
+The result object "res" has following properties:
+
+* `abuf`: ArrayBuffer corresponding to `data`, where colors are remapped by a palette
+* `inds`: Uint8Array : the index of a color for each sample (only when `psize`<=256)
+* `plte`: Array : the Palette - a list of colors, `plte[i].est.q` and `plte[i].est.rgba` is the color value
+
+### FAQ
+
+- To get one common palette for multiple images (e.g. frames of the animation), concatenate them into one array `data`.
+- When working with less than four components, set the remaining components to a constant value (e.g. to zero)
+- When working with transparency, premultiply color components by transparency (otherwise, rgba(1,1,1,0) would be closer to rgba(1,1,1,1) than to rgba(0,0,0,0) - transparent mapped to white instead of transparent)
