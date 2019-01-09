@@ -20,7 +20,7 @@ UPNG.js supports APNG and the interface expects "frames". Regular PNG is just a 
 * `imgs`: array of frames. A frame is an ArrayBuffer containing the pixel data (RGBA, 8 bits per channel)
 * `w`, `h` : width and height of the image
 * `cnum`: number of colors in the result;  0: all colors (lossless PNG)
-* `dels`: array of delays for each frame (only when 2 or more frames)
+* `dels`: array of millisecond delays for each frame (only when 2 or more frames)
 * returns an ArrayBuffer with binary data of a PNG file
 
 UPNG.js can do a lossy minification of PNG files, similar to [TinyPNG](https://tinypng.com/) and other tools. It performed quantization with [k-means algorithm](https://en.wikipedia.org/wiki/K-means_clustering) in the past, but now we use [K-d trees](https://en.wikipedia.org/wiki/K-d_tree).
@@ -37,7 +37,7 @@ Lossy compression is allowed by the last parameter `cnum`. Set it to zero for a 
 * `w`, `h` : width and height of the image
 * `cc`, `ac`: number of color channels (1 or 3) and alpha channels (0 or 1)
 * `depth`: bit depth of pixel data (1, 2, 4, 8, 16)
-* `dels`: array of delays for each frame (only when 2 or more frames)
+* `dels`: array of millisecond delays for each frame (only when 2 or more frames)
 * returns an ArrayBuffer with binary data of a PNG file
 
 This function does not do any optimizations, it just stores what you give it. There are two cases when it is useful:
