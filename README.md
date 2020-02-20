@@ -6,11 +6,7 @@ A small, fast and advanced PNG / APNG encoder and decoder. It is the main PNG en
 * [UPNG.Photopea.com](http://upng.photopea.com) - a separate minifier app, that uses UPNG.js
 * Support us by [making a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=ivan%40kuckir%2ecom&lc=CZ&item_name=UPNG%2ejs&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted).
 
-Download and include the `UPNG.js` file in your code, or get it from NPM:
-
-```sh
-npm install upng-js
-```
+Download and include the `UPNG.js` file in your code.
 
 ## Encoder
 
