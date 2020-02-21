@@ -1,5 +1,10 @@
 
 var UPNG = {};
+if (typeof globalThis === 'object') {
+	globalThis.UPNG = UPNG;
+} else if (typeof window === 'object') {
+	window.UPNG = UPNG;
+};
 
 	
 
@@ -786,7 +791,7 @@ UPNG.encode._filterZero = function(img,h,bpp,bpl,data, filter, levelZero)
 	else if(h*bpl>500000 || bpp==1) ftry=[0];
 	var opts;  if(levelZero) opts={level:0};
 	
-	var CMPR = (levelZero && UZIP!=null) ? UZIP : pako;
+	var CMPR = (levelZero && typeof UZIP === 'object' && UZIP!=null) ? UZIP : pako;
 	
 	for(var i=0; i<ftry.length; i++) {
 		for(var y=0; y<h; y++) UPNG.encode._filterLine(data, img, y, bpl, bpp, ftry[i]);
