@@ -413,6 +413,8 @@ UPNG._copyTile = function(sb, sw, sh, tb, tw, th, xoff, yoff, mode)
 
 
 
+
+
 UPNG.encode = function(bufs, w, h, ps, dels, tabs, forbidPlte)
 {
 	if(ps==null) ps=0;
