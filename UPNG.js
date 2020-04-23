@@ -414,7 +414,6 @@ UPNG._copyTile = function(sb, sw, sh, tb, tw, th, xoff, yoff, mode)
 
 
 
-
 UPNG.encode = function(bufs, w, h, ps, dels, tabs, forbidPlte)
 {
 	if(ps==null) ps=0;
@@ -586,12 +585,12 @@ UPNG.encode.compress = function(bufs, w, h, ps, prms) // prms:  onlyBlend, minBi
 	var frms = UPNG.encode.framize(bufs, w, h, onlyBlend, evenCrd, forbidPrev);
 	//console.log("framize", Date.now()-time);  time = Date.now();
 	
-	var cmap={}, plte=[], inds=[];  
+	var cmap={}, plte=[], inds=[]; 
 	
 	if(ps!=0) {
 		var nbufs = [];  for(var i=0; i<frms.length; i++) nbufs.push(frms[i].img.buffer);
 		
-		var abuf = UPNG.encode.concatRGBA(nbufs), qres = UPNG.quantize(abuf, ps);  
+		var abuf = UPNG.encode.concatRGBA(nbufs), qres = UPNG.quantize(abuf, ps);
 		var cof = 0, bb = new Uint8Array(qres.abuf);
 		for(var i=0; i<frms.length; i++) {  var ti=frms[i].img, bln=ti.length;  inds.push(new Uint8Array(qres.inds.buffer, cof>>2, bln>>2));
 			for(var j=0; j<bln; j+=4) {  ti[j]=bb[cof+j];  ti[j+1]=bb[cof+j+1];  ti[j+2]=bb[cof+j+2];  ti[j+3]=bb[cof+j+3];  }    cof+=bln;  }
@@ -985,9 +984,9 @@ UPNG.quantize.estats = function(stats){
 	var b = [0.5,0.5,0.5,0.5], mi = 0, tmi = 0;
 	
 	if(N!=0)
-	for(var i=0; i<10; i++) {
+	for(var i=0; i<16; i++) {
 		b = M.multVec(A, b);  tmi = Math.sqrt(M.dot(b,b));  b = M.sml(1/tmi,  b);
-		if(Math.abs(tmi-mi)<1e-9) break;  mi = tmi;
+		if(i!=0 && Math.abs(tmi-mi)<1e-9) break;  mi = tmi;
 	}	
 	//b = [0,0,1,0];  mi=N;
 	var q = [m0*iN, m1*iN, m2*iN, m3*iN];
