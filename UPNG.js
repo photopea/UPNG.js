@@ -113,6 +113,7 @@ UPNG.decode = function(buff)
 		//console.log(type,len);
 		
 		if     (type=="IHDR")  {  UPNG.decode._IHDR(data, offset, out);  }
+		else if(type=="CgBI")  {  out.tabs[type] = data.slice(offset,offset+4);  }
 		else if(type=="IDAT") {
 			for(var i=0; i<len; i++) dd[doff+i] = data[offset+i];
 			doff += len;
@@ -159,7 +160,12 @@ UPNG.decode = function(buff)
 			var ltag = bin.readASCII(data, off, nz-off);  off = nz + 1;
 			nz = bin.nextZero(data, off);
 			var tkeyw = bin.readUTF8(data, off, nz-off);  off = nz + 1;
-			var text  = bin.readUTF8(data, off, len-(off-offset));
+			var text, tl=len-(off-offset);
+			if(cflag==0) text  = bin.readUTF8(data, off, tl);
+			else {
+				var bfr = UPNG.decode._inflate(data.slice(off,off+tl));
+				text = bin.readUTF8(bfr,0,bfr.length);
+			}
 			out.tabs[type][keyw] = text;
 		}
 		else if(type=="PLTE") {
@@ -202,7 +208,8 @@ UPNG.decode = function(buff)
 UPNG.decode._decompress = function(out, dd, w, h) {
 	var time = Date.now();
 	var bpp = UPNG.decode._getBPP(out), bpl = Math.ceil(w*bpp/8), buff = new Uint8Array((bpl+1+out.interlace)*h);
-	dd = UPNG.decode._inflate(dd,buff);
+	if(out.tabs["CgBI"]) dd = UPNG.inflateRaw(dd,buff);
+	else                 dd = UPNG.decode._inflate(dd,buff);
 	//console.log(dd.length, buff.length);
 	//console.log(Date.now()-time);
 
@@ -590,7 +597,7 @@ UPNG.encode.compress = function(bufs, w, h, ps, prms) // prms:  onlyBlend, minBi
 	if(ps!=0) {
 		var nbufs = [];  for(var i=0; i<frms.length; i++) nbufs.push(frms[i].img.buffer);
 		
-		var abuf = UPNG.encode.concatRGBA(nbufs), qres = UPNG.quantize(abuf, ps);
+		var abuf = UPNG.encode.concatRGBA(nbufs), qres = UPNG.quantize(abuf, ps);  console.log(qres);
 		var cof = 0, bb = new Uint8Array(qres.abuf);
 		for(var i=0; i<frms.length; i++) {  var ti=frms[i].img, bln=ti.length;  inds.push(new Uint8Array(qres.inds.buffer, cof>>2, bln>>2));
 			for(var j=0; j<bln; j+=4) {  ti[j]=bb[cof+j];  ti[j+1]=bb[cof+j+1];  ti[j+2]=bb[cof+j+2];  ti[j+3]=bb[cof+j+3];  }    cof+=bln;  }
@@ -787,8 +794,10 @@ UPNG.encode._filterZero = function(img,h,bpp,bpl,data, filter, levelZero)
 	else if(h*bpl>500000 || bpp==1) ftry=[0];
 	var opts;  if(levelZero) opts={level:0};
 	
-	var CMPR = (levelZero && UZIP!=null) ? UZIP : pako;
 	
+	var CMPR = (data.length>10e6 && UZIP!=null) ? UZIP : pako;
+	
+	var time = Date.now();
 	for(var i=0; i<ftry.length; i++) {
 		for(var y=0; y<h; y++) UPNG.encode._filterLine(data, img, y, bpl, bpp, ftry[i]);
 		//var nimg = new Uint8Array(data.length);
@@ -798,6 +807,7 @@ UPNG.encode._filterZero = function(img,h,bpp,bpl,data, filter, levelZero)
 		//console.log(crc, UZIP.adler(data,2,data.length-6));
 		fls.push(CMPR["deflate"](data,opts));
 	}
+	
 	var ti, tsize=1e9;
 	for(var i=0; i<fls.length; i++) if(fls[i].length<tsize) {  ti=i;  tsize=fls[i].length;  }
 	return fls[ti];
@@ -860,18 +870,21 @@ UPNG.quantize = function(abuf, ps)
 	var planeDst = UPNG.quantize.planeDst;
 	var sb = oimg, tb = nimg32, len=sb.length;
 		
-	var inds = new Uint8Array(oimg.length>>2);
-	for(var i=0; i<len; i+=4) {
-		var r=sb[i]*(1/255), g=sb[i+1]*(1/255), b=sb[i+2]*(1/255), a=sb[i+3]*(1/255);
-		
-		//  exact, but too slow :(
-		var nd = UPNG.quantize.getNearest(root, r, g, b, a);
-		//var nd = root;
-		//while(nd.left) nd = (planeDst(nd.est,r,g,b,a)<=0) ? nd.left : nd.right;
-		
-		inds[i>>2] = nd.ind;
-		tb[i>>2] = nd.est.rgba;
-	}
+	var inds = new Uint8Array(oimg.length>>2), nd;
+	if(oimg.length<20e6)  // precise, but slow :(
+		for(var i=0; i<len; i+=4) {
+			var r=sb[i]*(1/255), g=sb[i+1]*(1/255), b=sb[i+2]*(1/255), a=sb[i+3]*(1/255);
+			
+			nd = UPNG.quantize.getNearest(root, r, g, b, a);
+			inds[i>>2] = nd.ind;  tb[i>>2] = nd.est.rgba;
+		}
+	else 
+		for(var i=0; i<len; i+=4) {
+			var r=sb[i]*(1/255), g=sb[i+1]*(1/255), b=sb[i+2]*(1/255), a=sb[i+3]*(1/255);
+			
+			nd = root;  while(nd.left) nd = (planeDst(nd.est,r,g,b,a)<=0) ? nd.left : nd.right;
+			inds[i>>2] = nd.ind;  tb[i>>2] = nd.est.rgba;
+		}
 	return {  abuf:nimg.buffer, inds:inds, plte:leafs  };
 }
 
