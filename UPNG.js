@@ -143,11 +143,16 @@ UPNG.decode = function(buff)
 			out.tabs[type] = [];
 			for(var i=0; i<8; i++) out.tabs[type].push(bin.readUint(data, offset+i*4));
 		}
-		else if(type=="tEXt") {
+		else if(type=="tEXt" || type=="zTXt") {
 			if(out.tabs[type]==null) out.tabs[type] = {};
 			var nz = bin.nextZero(data, offset);
 			var keyw = bin.readASCII(data, offset, nz-offset);
-			var text = bin.readASCII(data, nz+1, offset+len-nz-1);
+			var text, tl=offset+len-nz-1;
+			if(type=="tEXt") text = bin.readASCII(data, nz+1, tl);
+			else {
+				var bfr = UPNG.decode._inflate(data.slice(nz+2,nz+2+tl));
+				text = bin.readUTF8(bfr,0,bfr.length);
+			}
 			out.tabs[type][keyw] = text;
 		}
 		else if(type=="iTXt") {
@@ -416,7 +421,6 @@ UPNG._copyTile = function(sb, sw, sh, tb, tw, th, xoff, yoff, mode)
 		}
 	return true;
 }
-
 
 
 
