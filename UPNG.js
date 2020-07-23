@@ -144,14 +144,14 @@ UPNG.decode = function(buff)
 			for(var i=0; i<8; i++) out.tabs[type].push(bin.readUint(data, offset+i*4));
 		}
 		else if(type=="tEXt") {
-			if(out.tabs[type]==null) out.tabs[type] = {};
+			if(out.tabs[type]==null) out.tabs[type] = [];
 			var nz = bin.nextZero(data, offset);
 			var keyw = bin.readASCII(data, offset, nz-offset);
 			var text = bin.readASCII(data, nz+1, offset+len-nz-1);
-			out.tabs[type][keyw] = text;
+			out.tabs[type].push({ 'keyword': keyw, 'text': text});
 		}
 		else if(type=="iTXt") {
-			if(out.tabs[type]==null) out.tabs[type] = {};
+			if(out.tabs[type]==null) out.tabs[type] = [];
 			var nz = 0, off = offset;
 			nz = bin.nextZero(data, off);
 			var keyw = bin.readASCII(data, off, nz-off);  off = nz + 1;
@@ -166,8 +166,21 @@ UPNG.decode = function(buff)
 				var bfr = UPNG.decode._inflate(data.slice(off,off+tl));
 				text = bin.readUTF8(bfr,0,bfr.length);
 			}
-			out.tabs[type][keyw] = text;
+			out.tabs[type].push({ "keyword":keyw, "languageTag":ltag, "translatedKeyword":tkeyw, "text":text });
 		}
+                else if(type=="zTXt") {
+			if(out.tabs[type]==null) out.tabs[type] = [];
+			var nz = 0, off = offset;
+			nz = bin.nextZero(data, off);
+			var keyw = bin.readASCII(data, off, nz-off);  off = nz + 1;
+                        var cmeth = data[off];  off+=1;
+                        var text, tl=len-(off-offset);
+                        if (0 == cmeth) {
+                          var bfr = UPNG.decode._inflate(data.slice(off,off+tl));
+                          text = bin.readUTF8(bfr,0,bfr.length);
+                        }
+                        out.tabs[type].push({ "keyword":keyw, "text": text });
+                }
 		else if(type=="PLTE") {
 			out.tabs[type] = bin.readBytes(data, offset, len);
 		}
