@@ -998,7 +998,7 @@ UPNG.quantize.estats = function(stats){
 	];
 	
 	var A = Rj, M = UPNG.M4;
-	var b = [0.5,0.5,0.5,0.5], mi = 0, tmi = 0;
+	var b = [Math.random(),Math.random(),Math.random(),Math.random()], mi = 0, tmi = 0;
 	
 	if(N!=0)
 	for(var i=0; i<16; i++) {
