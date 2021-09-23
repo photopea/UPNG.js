@@ -87,7 +87,7 @@ UPNG.toRGBA8.decodeImage = function(data, w, h, out)
 			else if(depth== 2) for(var x=0; x<w; x++) {  var gr= 85*((data[off+(x>>>2)]>>>(6 -((x&3)<<1)))& 3), al=(gr==tr* 85)?0:255;  bf32[to+x]=(al<<24)|(gr<<16)|(gr<<8)|gr;  }
 			else if(depth== 4) for(var x=0; x<w; x++) {  var gr= 17*((data[off+(x>>>1)]>>>(4 -((x&1)<<2)))&15), al=(gr==tr* 17)?0:255;  bf32[to+x]=(al<<24)|(gr<<16)|(gr<<8)|gr;  }
 			else if(depth== 8) for(var x=0; x<w; x++) {  var gr=data[off+     x], al=(gr                 ==tr)?0:255;  bf32[to+x]=(al<<24)|(gr<<16)|(gr<<8)|gr;  }
-			else if(depth==16) for(var x=0; x<w; x++) {  var gr=data[off+(x<<1)], al=(rs(data,off+(x<<i))==tr)?0:255;  bf32[to+x]=(al<<24)|(gr<<16)|(gr<<8)|gr;  }
+			else if(depth==16) for(var x=0; x<w; x++) {  var gr=data[off+(x<<1)], al=(rs(data,off+(x<<1))==tr)?0:255;  bf32[to+x]=(al<<24)|(gr<<16)|(gr<<8)|gr;  }
 		}
 	}
 	//console.log(Date.now()-time);
@@ -197,12 +197,12 @@ UPNG.decode = function(buff)
 		else if(type=="IEND") {
 			break;
 		}
-		//else {  log("unknown chunk type", type, len);  }
+		//else {  console.log("unknown chunk type", type, len);  out.tabs[type]=data.slice(offset,offset+len);  }
 		offset += len;
 		var crc = bin.readUint(data, offset);  offset += 4;
 	}
 	if(foff!=0) {  var fr = out.frames[out.frames.length-1];
-		fr.data = UPNG.decode._decompress(out, fd.slice(0,foff), fr.rect.width, fr.rect.height);  foff=0;
+		fr.data = UPNG.decode._decompress(out, fd.slice(0,foff), fr.rect.width, fr.rect.height);
 	}	
 	out.data = UPNG.decode._decompress(out, dd, out.width, out.height);
 	
@@ -325,7 +325,7 @@ UPNG.decode._filterZero = function(data, out, off, w, h)
 	var bpp = UPNG.decode._getBPP(out), bpl = Math.ceil(w*bpp/8), paeth = UPNG.decode._paeth;
 	bpp = Math.ceil(bpp/8);
 	
-	var i=0, di=1, type=data[off], x=0;
+	var i,di, type=data[off], x=0;
 	
 	if(type>1) data[off]=[0,0,1][type-2];  
 	if(type==3) for(x=bpp; x<bpl; x++) data[x+1] = (data[x+1] + (data[x+1-bpp]>>>1) )&255;
@@ -425,12 +425,13 @@ UPNG._copyTile = function(sb, sw, sh, tb, tw, th, xoff, yoff, mode)
 
 
 
+
 UPNG.encode = function(bufs, w, h, ps, dels, tabs, forbidPlte)
 {
 	if(ps==null) ps=0;
 	if(forbidPlte==null) forbidPlte = false;
 
-	var nimg = UPNG.encode.compress(bufs, w, h, ps, [false, false, false, 0, forbidPlte]);
+	var nimg = UPNG.encode.compress(bufs, w, h, ps, [false, false, false, 0, forbidPlte,false]);
 	UPNG.encode.compressPNG(nimg, -1);
 	
 	return UPNG.encode._main(nimg, w, h, dels, tabs);
@@ -580,7 +581,7 @@ UPNG.encode.compressPNG = function(out, filter, levelZero) {
 UPNG.encode.compress = function(bufs, w, h, ps, prms) // prms:  onlyBlend, minBits, forbidPlte
 {
 	//var time = Date.now();
-	var onlyBlend = prms[0], evenCrd = prms[1], forbidPrev = prms[2], minBits = prms[3], forbidPlte = prms[4];
+	var onlyBlend = prms[0], evenCrd = prms[1], forbidPrev = prms[2], minBits = prms[3], forbidPlte = prms[4], dither=prms[5];
 	
 	var ctype = 6, depth = 8, alphaAnd=255
 	
@@ -601,12 +602,22 @@ UPNG.encode.compress = function(bufs, w, h, ps, prms) // prms:  onlyBlend, minBi
 	if(ps!=0) {
 		var nbufs = [];  for(var i=0; i<frms.length; i++) nbufs.push(frms[i].img.buffer);
 		
-		var abuf = UPNG.encode.concatRGBA(nbufs), qres = UPNG.quantize(abuf, ps);  console.log(qres);
-		var cof = 0, bb = new Uint8Array(qres.abuf);
-		for(var i=0; i<frms.length; i++) {  var ti=frms[i].img, bln=ti.length;  inds.push(new Uint8Array(qres.inds.buffer, cof>>2, bln>>2));
-			for(var j=0; j<bln; j+=4) {  ti[j]=bb[cof+j];  ti[j+1]=bb[cof+j+1];  ti[j+2]=bb[cof+j+2];  ti[j+3]=bb[cof+j+3];  }    cof+=bln;  }
+		var abuf = UPNG.encode.concatRGBA(nbufs), qres = UPNG.quantize(abuf, ps);
 		
 		for(var i=0; i<qres.plte.length; i++) plte.push(qres.plte[i].est.rgba);
+		
+		var cof = 0;
+		for(var i=0; i<frms.length; i++) {  
+			var frm=frms[i], bln=frm.img.length, ind = new Uint8Array(qres.inds.buffer, cof>>2, bln>>2);  inds.push(ind);
+			var bb = new Uint8Array(qres.abuf,cof,bln);
+			
+			//console.log(frm.img, frm.width, frm.height);
+			//var time = Date.now();
+			if(dither) UPNG.encode.dither(frm.img, frm.rect.width, frm.rect.height, plte, bb, ind);
+			//console.log(Date.now()-time);
+			frm.img.set(bb);  cof+=bln;  
+		}
+		
 		//console.log("quantize", Date.now()-time);  time = Date.now();
 	}
 	else {
@@ -866,30 +877,30 @@ UPNG.crc = {
 
 UPNG.quantize = function(abuf, ps)
 {	
-	var oimg = new Uint8Array(abuf), nimg = oimg.slice(0), nimg32 = new Uint32Array(nimg.buffer);
+	var sb = new Uint8Array(abuf), tb = sb.slice(0), tb32 = new Uint32Array(tb.buffer);
 	
-	var KD = UPNG.quantize.getKDtree(nimg, ps);
+	var KD = UPNG.quantize.getKDtree(tb, ps);
 	var root = KD[0], leafs = KD[1];
 	
 	var planeDst = UPNG.quantize.planeDst;
-	var sb = oimg, tb = nimg32, len=sb.length;
+	var len=sb.length;
 		
-	var inds = new Uint8Array(oimg.length>>2), nd;
-	if(oimg.length<20e6)  // precise, but slow :(
+	var inds = new Uint8Array(len>>2), nd;
+	if(sb.length<20e6)  // precise, but slow :(
 		for(var i=0; i<len; i+=4) {
 			var r=sb[i]*(1/255), g=sb[i+1]*(1/255), b=sb[i+2]*(1/255), a=sb[i+3]*(1/255);
 			
 			nd = UPNG.quantize.getNearest(root, r, g, b, a);
-			inds[i>>2] = nd.ind;  tb[i>>2] = nd.est.rgba;
+			inds[i>>2] = nd.ind;  tb32[i>>2] = nd.est.rgba;
 		}
 	else 
 		for(var i=0; i<len; i+=4) {
 			var r=sb[i]*(1/255), g=sb[i+1]*(1/255), b=sb[i+2]*(1/255), a=sb[i+3]*(1/255);
 			
 			nd = root;  while(nd.left) nd = (planeDst(nd.est,r,g,b,a)<=0) ? nd.left : nd.right;
-			inds[i>>2] = nd.ind;  tb[i>>2] = nd.est.rgba;
+			inds[i>>2] = nd.ind;  tb32[i>>2] = nd.est.rgba;
 		}
-	return {  abuf:nimg.buffer, inds:inds, plte:leafs  };
+	return {  abuf:tb.buffer, inds:inds, plte:leafs  };
 }
 
 UPNG.quantize.getKDtree = function(nimg, ps, err) {
@@ -1038,4 +1049,59 @@ UPNG.encode.concatRGBA = function(bufs) {
 		noff += il;
 	}
 	return nimg.buffer;
+}
+
+UPNG.encode.dither = function(sb, w, h, plte, tb, oind) {
+	
+	function addErr(er, tg, ti, f) {
+		tg[ti]+=(er[0]*f)>>4;  tg[ti+1]+=(er[1]*f)>>4;  tg[ti+2]+=(er[2]*f)>>4;  tg[ti+3]+=(er[3]*f)>>4;  
+	}
+	function N(x) {  return Math.max(0, Math.min(255, x));  }
+	function D(a,b) {  var dr=a[0]-b[0], dg=a[1]-b[1], db=a[2]-b[2], da=a[3]-b[3];  return (dr*dr + dg*dg + db*db + da*da);  }
+	
+	
+	var pc=plte.length, nplt = [], rads=[];
+	for(var i=0; i<pc; i++) {
+		var c = plte[i];
+		nplt.push([((c>>>0)&255), ((c>>>8)&255), ((c>>>16)&255), ((c>>>24)&255)]);
+	}
+	for(var i=0; i<pc; i++) {
+		var ne=0xffffffff, ni=0;
+		for(var j=0; j<pc; j++) {  var ce=D(nplt[i],nplt[j]);  if(j!=i && ce<ne) {  ne=ce;  ni=j;  }  }
+		var hd = Math.sqrt(ne)/2;
+		rads[i] = ~~(hd*hd);
+	}
+		
+	var tb32 = new Uint32Array(tb.buffer);
+	var err = new Int16Array(w*h*4);
+	
+	for(var y=0; y<h; y++) {
+		for(var x=0; x<w; x++) {
+			var i = (y*w+x)*4;
+			
+			var cc = [N(sb[i]+err[i]), N(sb[i+1]+err[i+1]), N(sb[i+2]+err[i+2]), N(sb[i+3]+err[i+3])];
+			
+			var ni=0, nd = 0xffffff;
+			for(var j=0; j<pc; j++) {
+				var cd = D(cc,nplt[j]);
+				if(cd<nd) {  nd=cd;  ni=j;  }
+			}  
+			
+			//ni = oind[i>>2];
+			var nc = nplt[ni];
+			var er = [cc[0]-nc[0], cc[1]-nc[1], cc[2]-nc[2], cc[3]-nc[3]];
+			
+			//addErr(er, err, i+4, 16);
+			
+			//*
+			if(x!=w-1) addErr(er, err, i+4    , 7);
+			if(y!=h-1) {
+				if(x!=  0) addErr(er, err, i+4*w-4, 3);
+				           addErr(er, err, i+4*w  , 5);
+				if(x!=w-1) addErr(er, err, i+4*w+4, 1);  //*/
+			}
+		
+			oind[i>>2] = ni;  tb32[i>>2] = plte[ni];
+		}
+	}
 }
