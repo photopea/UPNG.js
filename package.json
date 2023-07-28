@@ -12,7 +12,16 @@
   "bugs": {
     "url": "https://github.com/photopea/UPNG.js/issues"
   },
-  "main": "UPNG",
+  "exports": {
+    ".": {
+      "require": "./src/upng.cjs",
+      "import": "./src/upng.mjs"
+    }
+  },
+  "scripts": {
+    "prepack": "esbuild ./src/upng.mjs --bundle --platform=node --outfile=./src/upng.cjs"
+  },
+  "main": "src/upng.cjs",
   "keywords": [
     "png",
     "apng",
@@ -21,5 +30,8 @@
   ],
   "dependencies": {
     "pako": "^1.0.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.18.11"
   }
 }
